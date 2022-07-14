@@ -1,9 +1,10 @@
 use serde::Deserialize;
+use std::fs::{self, read_to_string};
 use std::{
-    collections::{HashMap, HashSet},
+    collections::{HashMap, HashSet, BTreeSet},
     iter::zip,
     panic::PanicInfo,
-    string,
+    string, fmt::format,
 };
 use alphabet::*;
 use strsim::jaro;
@@ -13,14 +14,14 @@ fn string_to_array(str: &str) -> Vec<String> {
 }
 
 fn similar(a: &str, b: &str) -> bool {
-    jaro(a, b) > 0.7
+    jaro(a, b) > 0.8
 }
 
 fn fill_simmilary_strings(
     old_array: &Vec<(String, String)>,
     new_array: &Vec<String>,
-    old_array_hashset: &mut HashSet<(String, String)>,
-    new_string_hashset: &mut HashSet<String>,
+    old_array_hashset: &mut BTreeSet<(String, String)>,
+    new_string_hashset: &mut BTreeSet<String>,
 ) -> Vec<(String, String)> {
     let mut answer: Vec<(String, String)> = Vec::with_capacity(new_array.len());
     answer.resize(new_array.len(), (String::from(""), String::from("")));
@@ -35,12 +36,22 @@ fn fill_simmilary_strings(
     }
     answer
 }
+fn get_key_number(key: &str) -> Result<usize, std::num::ParseIntError>{
+    key.split(":").last().unwrap().parse::<usize>()
+}
+fn increase_key_number(key: String) -> String {
+    dbg!(&key);
+    let new_number = get_key_number(&key).unwrap() + 1;
+    let key = key.trim_end_matches(|x: char| x.is_digit(10)).to_string();
+    key + &format!("{:03}", new_number) 
+
+}
 fn get_unique_key(old_answer: &mut Vec<(String, String)>, pos: usize) -> String {
     let (x, y) = old_answer.split_at(pos);
     let left = x.iter().rev().find(|(k, _)| !k.is_empty()).map(|x| (x.0).clone());
     let right = y.iter().find(|(k, _)| !k.is_empty()).map(|x| (x.0).clone());
     match (left, right) {
-        (Some(x), Some(y)) => x + &y,
+        (Some(x), Some(y)) => increase_key_number(x),
         (Some(x), None) => x,
         (None, Some(y)) => y,
         (None, None) => "a".to_string(),
@@ -50,8 +61,8 @@ fn get_unique_key(old_answer: &mut Vec<(String, String)>, pos: usize) -> String 
 fn fill_all_strings(
     old_array: &Vec<(String, String)>,
     new_array: &Vec<String>,
-    old_array_hashset: &mut HashSet<(String, String)>,
-    new_string_hashset: &mut HashSet<String>,
+    old_array_hashset: &mut BTreeSet<(String, String)>,
+    new_string_hashset: &mut BTreeSet<String>,
     old_answer: &mut Vec<(String, String)>,
 ) {
     for (i, text) in new_array.iter().enumerate() {
@@ -65,10 +76,10 @@ fn fill_all_strings(
 
 fn pipeline(old_array: Vec<(String, String)>, new_string: &str) -> Vec<(String, String)> {
     let new_string_array = string_to_array(new_string);
-    let mut old_array_hashset: HashSet<(String, String)> =
-        HashSet::from_iter(old_array.iter().cloned());
-    let mut new_string_hashset: HashSet<String> =
-        HashSet::from_iter(new_string_array.iter().cloned());
+    let mut old_array_hashset: BTreeSet<(String, String)> =
+        BTreeSet::from_iter(old_array.iter().cloned());
+    let mut new_string_hashset: BTreeSet<String> =
+        BTreeSet::from_iter(new_string_array.iter().cloned());
     let mut unsorted_partial_answer = fill_simmilary_strings(
         &old_array,
         &new_string_array,
@@ -105,7 +116,6 @@ impl PartialEq for SimString {
 }
 #[cfg(test)]
 mod tests {
-    use std::fs::{self, read_to_string};
 
     use super::*;
     #[test]
@@ -186,7 +196,9 @@ mod tests {
         let old_array = fs::read_to_string("tsts/future-generations.json").unwrap();
         let new_string = fs::read_to_string("tsts/future-generations.md").unwrap();
         let old_array: HashMap<String, String> = serde_json::from_str(&old_array).unwrap();
-        let old_array: Vec<(String, String)> = old_array.into_iter().collect();
+        let mut old_array: Vec<(String, String)> = old_array.into_iter().collect();
+        //old_array.sort_by(|a, b| a.0.cmp(&b.0));
+        //eprintln!("{:#?}", old_array);
         println!("{:#?}", pipeline(old_array, &new_string));
 
     }
