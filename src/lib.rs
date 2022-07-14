@@ -1,24 +1,80 @@
-use serde::Deserialize;
-use std::fs::{self, read_to_string};
-use std::{
-    collections::{HashMap, HashSet, BTreeSet},
-    iter::zip,
-    panic::PanicInfo,
-    string, fmt::format,
-};
 use alphabet::*;
+use std::collections::{BTreeMap, BTreeSet, HashMap};
+use std::fs::read_to_string;
 use strsim::jaro;
 
+pub struct Config {
+    pub old_json: String,
+    pub new_string: String,
+}
+impl Config {
+    pub fn new(args: &[String]) -> Result<Config, &'static str> {
+        if args.len() < 3 {
+            return Err("not enough arguments");
+        }
+        let old_json = args[1].clone();
+        let new_string = args[2].clone();
+
+        Ok(Config {
+            old_json,
+            new_string,
+        })
+    }
+}
+
+pub fn run(config: Config) {
+    let old_array = read_to_string(&config.old_json).unwrap();
+    let new_string = read_to_string(&config.new_string).unwrap();
+
+    let old_array: BTreeMap<String, String> = serde_json::from_str(&old_array).unwrap();
+    let old_array: Vec<(String, String)> = old_array.into_iter().collect();
+
+    let final_json = pipeline(old_array, &new_string);
+
+    serde_json::to_writer_pretty(
+        std::fs::File::create("new-".to_string() + config.old_json.split("/").last().unwrap())
+            .unwrap(),
+        &final_json,
+    )
+    .unwrap();
+}
+
+pub fn pipeline(old_array: Vec<(String, String)>, new_string: &str) -> Vec<(String, String)> {
+    let new_string_array = string_to_array(new_string);
+
+    let mut old_array_hashset: BTreeSet<(String, String)> =
+        BTreeSet::from_iter(old_array.iter().cloned());
+    let mut new_string_hashset: BTreeSet<String> =
+        BTreeSet::from_iter(new_string_array.iter().cloned());
+
+    let mut unsorted_partial_answer = fill_simmilary_strings(
+        &new_string_array,
+        &mut old_array_hashset,
+        &mut new_string_hashset,
+    );
+    //dbg!(&old_array);
+    //dbg!(&new_string_array);
+    dbg!(&old_array_hashset);
+    dbg!(&new_string_hashset);
+    dbg!(&unsorted_partial_answer);
+    fill_all_strings(
+        &new_string_array,
+        &mut new_string_hashset,
+        &mut unsorted_partial_answer,
+    );
+    //dbg!(&unsorted_partial_answer);
+    //alphabeticall_sort(&mut unsorted_partial_answer, Box::new(stupid_alphabet()));
+    unsorted_partial_answer
+}
 fn string_to_array(str: &str) -> Vec<String> {
     str.split("\n\n").map(|x| x.to_string()).collect()
 }
 
 fn similar(a: &str, b: &str) -> bool {
-    jaro(a, b) > 0.8
+    jaro(a, b) > 0.9
 }
 
 fn fill_simmilary_strings(
-    old_array: &Vec<(String, String)>,
     new_array: &Vec<String>,
     old_array_hashset: &mut BTreeSet<(String, String)>,
     new_string_hashset: &mut BTreeSet<String>,
@@ -36,32 +92,8 @@ fn fill_simmilary_strings(
     }
     answer
 }
-fn get_key_number(key: &str) -> Result<usize, std::num::ParseIntError>{
-    key.split(":").last().unwrap().parse::<usize>()
-}
-fn increase_key_number(key: String) -> String {
-    dbg!(&key);
-    let new_number = get_key_number(&key).unwrap() + 1;
-    let key = key.trim_end_matches(|x: char| x.is_digit(10)).to_string();
-    key + &format!("{:03}", new_number) 
-
-}
-fn get_unique_key(old_answer: &mut Vec<(String, String)>, pos: usize) -> String {
-    let (x, y) = old_answer.split_at(pos);
-    let left = x.iter().rev().find(|(k, _)| !k.is_empty()).map(|x| (x.0).clone());
-    let right = y.iter().find(|(k, _)| !k.is_empty()).map(|x| (x.0).clone());
-    match (left, right) {
-        (Some(x), Some(y)) => increase_key_number(x),
-        (Some(x), None) => x,
-        (None, Some(y)) => y,
-        (None, None) => "a".to_string(),
-    }
-
-}
 fn fill_all_strings(
-    old_array: &Vec<(String, String)>,
     new_array: &Vec<String>,
-    old_array_hashset: &mut BTreeSet<(String, String)>,
     new_string_hashset: &mut BTreeSet<String>,
     old_answer: &mut Vec<(String, String)>,
 ) {
@@ -73,148 +105,58 @@ fn fill_all_strings(
     }
 }
 
-
-fn pipeline(old_array: Vec<(String, String)>, new_string: &str) -> Vec<(String, String)> {
-    let new_string_array = string_to_array(new_string);
-    let mut old_array_hashset: BTreeSet<(String, String)> =
-        BTreeSet::from_iter(old_array.iter().cloned());
-    let mut new_string_hashset: BTreeSet<String> =
-        BTreeSet::from_iter(new_string_array.iter().cloned());
-    let mut unsorted_partial_answer = fill_simmilary_strings(
-        &old_array,
-        &new_string_array,
-        &mut old_array_hashset,
-        &mut new_string_hashset,
-    );
-    fill_all_strings(&old_array, &new_string_array, &mut old_array_hashset, &mut new_string_hashset, &mut unsorted_partial_answer);
-    alphabeticall_sort(&mut unsorted_partial_answer, Box::new(stupid_alphabet()));
-    unsorted_partial_answer
+fn get_unique_key(old_answer: &mut Vec<(String, String)>, pos: usize) -> String {
+    let (x, y) = old_answer.split_at(pos);
+    let left = x
+        .iter()
+        .rev()
+        .find(|(k, _)| !k.is_empty())
+        .map(|x| (x.0).clone());
+    let right = y.iter().find(|(k, _)| !k.is_empty()).map(|x| (x.0).clone());
+    match (left, right) {
+        (Some(x), Some(y)) => {
+            if get_key_number(&x).unwrap() != get_key_number(&y).unwrap() - 1 {
+                change_key_number(x, 1)
+            } else {
+                panic!()
+            }
+        }
+        (Some(x), None) => change_key_number(x, 1),
+        (None, Some(y)) => change_key_number(y, -1),
+        (None, None) => "a".to_string(),
+    }
 }
+fn get_key_number(key: &str) -> Result<usize, std::num::ParseIntError> {
+    key.split(":").last().unwrap().parse::<usize>()
+}
+
+pub fn add_usize_i32(x: usize, y: i32) -> Option<usize> {
+    if y.is_negative() {
+        x.checked_sub(y.wrapping_abs() as usize)
+    } else {
+        x.checked_add(y as usize)
+    }
+}
+
+fn change_key_number(key: String, df: i32) -> String {
+    dbg!(&key);
+    let new_number = add_usize_i32(get_key_number(&key).unwrap(), df).unwrap();
+    let key = key.trim_end_matches(|x: char| x.is_digit(10)).to_string();
+    key + &format!("{:03}", new_number)
+}
+
 fn stupid_alphabet() -> impl Iterator<Item = String> {
     alphabet!(SCREAM = "abcdefghijklmnopqrstuvwxyz");
     SCREAM.iter_words().skip(1 + 26 + 26 * 26)
-
 }
 
-fn alphabeticall_sort(array: &mut Vec<(String, String)>, mut iter: Box<dyn Iterator<Item=String>>) {
+fn alphabeticall_sort(
+    array: &mut Vec<(String, String)>,
+    mut iter: Box<dyn Iterator<Item = String>>,
+) {
     for x in array {
         if !x.0.is_empty() {
             x.0 = iter.next().unwrap() + &x.0;
         }
-    }
-}
-
-#[derive(Hash, Eq, Clone)]
-struct SimString(String);
-impl PartialEq for SimString {
-    fn eq(&self, other: &Self) -> bool {
-        jaro(&self.0, &other.0) > 0.7
-    }
-    fn ne(&self, other: &Self) -> bool {
-        jaro(&self.0, &other.0) < 0.7
-    }
-}
-#[cfg(test)]
-mod tests {
-
-    use super::*;
-    #[test]
-    fn telegram_simple() {
-        let old_json = r#"{"a":"Text Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua","c":"More Text for the God of Text"}"#;
-        let old_array: HashMap<String, String> = serde_json::from_str(old_json).unwrap();
-        let old_array: Vec<(String, String)> = old_array.into_iter().collect();
-        let new_string = "Text 123 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
-
-    Additional string
-    With a single \n
-    
-    A lot more text to the god of text";
-        let new_array = r#"{"a":"Text 123 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua","b":"Additional string\nWith a single \\n","c":"A lot more text to the god of text"}"#;
-        println!("{:#?}", &pipeline(old_array, new_string));
-    }
-    #[test]
-    fn simple() {
-        let old_string = "Мама\n\nМыла\n\nРаму\n\n";
-        let new_string = "Мыла\n\nРаму\n\nМама";
-        let old_array: Vec<(String, String)> = vec![
-            ("a".to_string(), "Мама".to_string()),
-            ("b".to_string(), "Мыла".to_string()),
-            ("c".to_string(), "Раму".to_string()),
-        ];
-        let mut answer = old_array.clone();
-        answer.swap(0, 1);
-        answer.swap(1, 2);
-        assert_eq!(&answer, &pipeline(old_array, new_string));
-    }
-    #[test]
-    fn simple_with_mistakes() {
-        let old_string = "Мама\n\nМыла\n\nРаму\n\n";
-        let new_string = "мыла\n\nРау\n\nМам";
-        let old_array: Vec<(String, String)> = vec![
-            ("a".to_string(), "Мама".to_string()),
-            ("b".to_string(), "Мыла".to_string()),
-            ("c".to_string(), "Раму".to_string()),
-        ];
-        let answer: Vec<(String, String)> = vec![
-            ("b".to_string(), "мыла".to_string()),
-            ("c".to_string(), "Рау".to_string()),
-            ("a".to_string(), "Мам".to_string()),
-        ];
-        assert_eq!(&answer, &pipeline(old_array, new_string));
-    }
-    #[test]
-    fn simple_with_mistakes_and_new_strings() {
-        let old_string = "Мама\n\nМыла\n\nРаму\n\n";
-        let new_string = "мыла\n\nКорыто\n\nРау\n\nМам\n\nРепа";
-        let old_array: Vec<(String, String)> = vec![
-            ("a".to_string(), "Мама".to_string()),
-            ("b".to_string(), "Мыла".to_string()),
-            ("c".to_string(), "Раму".to_string()),
-        ];
-        let answer: Vec<(String, String)> = vec![
-            ("b".to_string(), "мыла".to_string()),
-            ("".to_string(), "".to_string()),
-            ("c".to_string(), "Рау".to_string()),
-            ("a".to_string(), "Мам".to_string()),
-            ("".to_string(), "".to_string()),
-        ];
-        assert_eq!(&answer, &pipeline(old_array, new_string));
-    }
-    #[test]
-    fn alphabet_simple() {
-        let old_string = "Мама\n\nРаму\n\nМыла\n\n";
-        let new_string = "мыла\n\nКорыто\n\nРау\n\nМам\n\nРепа";
-        let old_array: Vec<(String, String)> = vec![
-            ("a".to_string(), "Мама".to_string()),
-            ("b".to_string(), "Мыла".to_string()),
-            ("c".to_string(), "Раму".to_string()),
-        ];
-        println!("{:?}", &pipeline(old_array, new_string));
-    }
-    #[test]
-    fn telegram_future() {
-        let old_array = fs::read_to_string("tsts/future-generations.json").unwrap();
-        let new_string = fs::read_to_string("tsts/future-generations.md").unwrap();
-        let old_array: HashMap<String, String> = serde_json::from_str(&old_array).unwrap();
-        let mut old_array: Vec<(String, String)> = old_array.into_iter().collect();
-        //old_array.sort_by(|a, b| a.0.cmp(&b.0));
-        //eprintln!("{:#?}", old_array);
-        println!("{:#?}", pipeline(old_array, &new_string));
-
-    }
-    #[test]
-    fn telegram_career() {
-        let old_array = fs::read_to_string("tsts/make-a-difference-with-your-career.json").unwrap();
-        let new_string = fs::read_to_string("tsts/make-a-difference-with-your-career.md").unwrap();
-        let old_array: HashMap<String, String> = serde_json::from_str(&old_array).unwrap();
-        let old_array: Vec<(String, String)> = old_array.into_iter().collect();
-        println!("{:#?}", pipeline(old_array, &new_string));
-
-    }
-    #[test]
-    fn sim() {
-        let old = "A lot more text to the god of text";
-        let new = "More Text for the God of Text";
-        assert!(jaro(old, new) > 0.7);
     }
 }
