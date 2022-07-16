@@ -1,4 +1,3 @@
-   Compiling stroki v0.1.0 (/home/aa/Документы/Rust/stroki)
 warning: unused import: `HashMap`
  --> src/lib.rs:2:44
   |
@@ -8,100 +7,22 @@ warning: unused import: `HashMap`
   = note: `#[warn(unused_imports)]` on by default
 
 warning: function is never used: `stupid_alphabet`
-   --> src/lib.rs:148:4
+   --> src/lib.rs:174:4
     |
-148 | fn stupid_alphabet() -> impl Iterator<Item = String> {
+174 | fn stupid_alphabet() -> impl Iterator<Item = String> {
     |    ^^^^^^^^^^^^^^^
     |
     = note: `#[warn(dead_code)]` on by default
 
 warning: function is never used: `alphabeticall_sort`
-   --> src/lib.rs:153:4
+   --> src/lib.rs:179:4
     |
-153 | fn alphabeticall_sort(
+179 | fn alphabeticall_sort(
     |    ^^^^^^^^^^^^^^^^^^
 
 warning: `stroki` (lib) generated 3 warnings
-    Finished release [optimized] target(s) in 1.35s
+    Finished release [optimized] target(s) in 0.01s
      Running `target/release/stroki tsts/future-generations.json tsts/future-generations.md`
-[src/lib.rs:57] &old_array_hashset = {
-    (
-        "future-generations:033",
-        "If you’re already on our newsletter, email us at [book.giveaway@80000hours.org](/cdn-cgi/l/email-protection#0e6c616165206967786b6f796f77286d6163636f7a35363e3e3e3e66617b7c7d20617c69) to get a copy.",
-    ),
-    (
-        "future-generations:037",
-        "</div>",
-    ),
-    (
-        "future-generations:039",
-        "If you prefer to start with a video, this presentation by Joseph Carlsmith is also a good introduction:",
-    ),
-    (
-        "future-generations:041",
-        "!ytb-Ccq2Ql8FcY0",
-    ),
-    (
-        "future-generations:043",
-        "<div class=\"panel clearfix \">",
-    ),
-    (
-        "future-generations:079",
-        "</div>",
-    ),
-    (
-        "future-generations:267",
-        "</div>",
-    ),
-    (
-        "future-generations:271",
-        "- [Moral uncertainty: how to act when you’re uncertain about what’s good](https://80000hours.org/articles/moral-uncertainty/)\n- Chapters 1-4 [_On the Overwhelming Importance of Shaping the Far Future_](https://80000hours.org/wp-content/uploads/2022/01/Beckstead-Nick-On-the-Overwhelming-Importance-of-Shaping-the-Far-Future-better-formatting.pdf) by Nick Beckstead. This thesis builds upon a seminal paper by Nick Bostrom, [_Astronomical Waste_](https://nickbostrom.com/astronomical/waste.html), which makes the argument that the future has overwhelming value for [utilitarians](https://www.utilitarianism.net/), as well as [_Existential Risk Prevention as a Global Priority_](http://www.existential-risk.org/concept.html).\n- A more recent and systematic academic treatment of the topic can be found here: [The Case for Strong Longtermism](https://globalprioritiesinstitute.org/hilary-greaves-william-macaskill-the-case-for-strong-longtermism-2/), by Hilary Greaves and Will MacAskill\n- Dr Nick Beckstead also discusses his thesis [in our podcast](https://80000hours.org/2017/10/nick-beckstead-giving-billions/).\n- Dr Toby Ord discusses these arguments in his book, [_The Precipice_](https://theprecipice.com/)\n- Dr Toby Ord also explores many of these arguments with us in another [podcast](https://80000hours.org/articles/why-the-long-run-future-matters-more-than-anything-else-and-what-we-should-do-about-it/).\n- Benjamin Todd and Arden Koehler discuss varieties of longtermism in [this podcast](https://80000hours.org/podcast/episodes/ben-todd-on-varieties-of-longtermism/).\n- [Our podcast with Alexander Berger](https://80000hours.org/podcast/episodes/alexander-berger-improving-global-health-wellbeing-clear-direct-ways/) presents a case for focusing instead on near-term gains in global health and wellbeing.\n- \u{200b}\u{200b}\u{200b}\u{200b}In this podcast, Holden Karnofsky talks about the case that we’re living in [the most important century](https://80000hours.org/podcast/episodes/holden-karnofsky-most-important-century/). And in a blog post, [_Are we living at the most influential time in history?_](https://forum.effectivealtruism.org/posts/XXLf6FmWujkxna3E6/are-we-living-at-the-most-influential-time-in-history-1), Dr Will MacAskill responds with counterarguments.\n- [This could be the most important century](https://80000hours.org/articles/the-most-important-century/)\n- [Why despite global progress, humanity is probably facing its most dangerous time ever.](https://80000hours.org/articles/extinction-risk/)\n- [Fifty-one policy and research ideas](https://80000hours.org/2020/04/longtermist-policy-ideas/) for reducing existential risk\n- [Carl Shulman on the common-sense case for existential risk work and its practical implications](https://80000hours.org/podcast/episodes/carl-shulman-common-sense-case-existential-risks/)\n- An alternative [introduction to longtermism](https://www.effectivealtruism.org/articles/longtermism/), which goes through somewhat different objections and reasoning",
-    ),
-    (
-        "future-generations:290",
-        "<div class=\"tw--grid xs:tw--grid-flow-col tw--gap-3\"><div class=\"xs:tw--order-last tw--pt-1\">\n[![](https://80000hours.org/wp-content/uploads/2017/03/cost-effectiveness-of-health-interventionsV1-01-e1489184505545-720x448.png)](https://80000hours.org/articles/effective-altruism/)\n</div>",
-    ),
-    (
-        "future-generations:298",
-        "</div>",
-    ),
-    (
-        "future-generations:304",
-        "</div>",
-    ),
-    (
-        "future-generations:306",
-        "</div>",
-    ),
-    (
-        "future-generations:308",
-        "</div>",
-    ),
-    (
-        "future-generations:310",
-        "<div class=\"well bg-gray-lighter margin-bottom margin-top padding-top-small padding-bottom-small\">",
-    ),
-    (
-        "future-generations:316",
-        "!newsletter-subscribe",
-    ),
-    (
-        "future-generations:318",
-        "</div>",
-    ),
-    (
-        "future-generations:323",
-        "</div>",
-    ),
-}
-[src/lib.rs:58] &new_string_hashset = {
-    "!ytb-LEENEFaVUzU",
-    "(Also, if you’re visiting us _from_ this video — welcome! We hope you like what you read.)",
-    "- Chapters 1-4 [_On the Overwhelming Importance of Shaping the Far Future_](https://80000hours.org/wp-content/uploads/2022/01/Beckstead-Nick-On-the-Overwhelming-Importance-of-Shaping-the-Far-Future-better-formatting.pdf) by Nick Beckstead (also discussed [in a podcast episode with us](https://80000hours.org/2017/10/nick-beckstead-giving-billions/)). This thesis builds upon a seminal paper by Nick Bostrom, [_Astronomical Waste_](https://nickbostrom.com/astronomical/waste.html), which makes the argument that the future has overwhelming value for [utilitarians](https://www.utilitarianism.net/), as well as [_Existential Risk Prevention as a Global Priority_](http://www.existential-risk.org/concept.html).\n- A more recent and systematic academic treatment of the topic can be found here: [The Case for Strong Longtermism](https://globalprioritiesinstitute.org/hilary-greaves-william-macaskill-the-case-for-strong-longtermism-2/), by Hilary Greaves and Will MacAskill\n- Dr Toby Ord discusses these arguments in his book, [_The Precipice_](https://theprecipice.com/), and in a [podcast episode with us](https://80000hours.org/articles/why-the-long-run-future-matters-more-than-anything-else-and-what-we-should-do-about-it/).\n- Benjamin Todd and Arden Koehler discuss varieties of longtermism in [this podcast](https://80000hours.org/podcast/episodes/ben-todd-on-varieties-of-longtermism/).\n- [Our podcast with Alexander Berger](https://80000hours.org/podcast/episodes/alexander-berger-improving-global-health-wellbeing-clear-direct-ways/) presents a case for focusing instead on near-term gains in global health and wellbeing.\n- \u{200b}\u{200b}\u{200b}\u{200b}In this podcast, Holden Karnofsky talks about the case that we’re living in [the most important century](https://80000hours.org/podcast/episodes/holden-karnofsky-most-important-century/). And in a blog post, [_Are we living at the most influential time in history?_](https://forum.effectivealtruism.org/posts/XXLf6FmWujkxna3E6/are-we-living-at-the-most-influential-time-in-history-1), Dr Will MacAskill responds with counterarguments.\n- [Why despite global progress, humanity is probably facing its most dangerous time ever.](https://80000hours.org/articles/extinction-risk/)\n- [Carl Shulman on the common-sense case for existential risk work and its practical implications](https://80000hours.org/podcast/episodes/carl-shulman-common-sense-case-existential-risks/)\n- An alternative [introduction to longtermism](https://www.effectivealtruism.org/articles/longtermism/), which goes through somewhat different objections and reasoning\n- Introductory overviews on longtermism from the [Forethought Foundation for Global Priorities Research](https://www.forethought.org/longtermism), [Our World In Data](https://ourworldindata.org/longtermism), [Wikipedia](https://en.wikipedia.org/wiki/Longtermism), and [1000 Word Philosophy](https://1000wordphilosophy.com/2021/09/17/longtermism/).\n- [Will MacAskill on whether you have to buy longtermism to prioritise reducing existential risk](https://80000hours.org/podcast/episodes/will-macaskill-ambition-longtermism-mental-health/)\n- If you’re interested in making charitable donations, see [Giving What We Can’s recommended charities and funds that are safeguarding the long-term future.](https://www.givingwhatwecan.org/cause-areas/long-term-future)\n- [Moral uncertainty: how to act when you’re uncertain about what’s good](https://80000hours.org/articles/moral-uncertainty/)",
-    "<div class=\"tw--grid xs:tw--grid-flow-col tw--gap-3\"><div class=\"xs:tw--order-last tw--pt-1\">\n[!img~ width=\"720\" height=\"448\" ~[Decorative post preview](https://80000hours.org/wp-content/uploads/2017/03/cost-effectiveness-of-health-interventionsV1-01-e1489184505545-720x448.png)](https://80000hours.org/articles/effective-altruism/)\n</div>",
-    "If you prefer to start by watching something, this video by Kurzgesagt presents the idea that there could be many future generations with very good lives. We’ll explain what this implies in the rest of this article.",
-    "If you’re already on our newsletter, email us at [book.giveaway@80000hours.org](/cdn-cgi/l/email-protection#b1d3dededa9fd6d8c7d4d0c6d0c897d2dedcdcd0c58a8981818181d9dec4c3c29fdec3d6) to get a copy.",
-}
 [src/lib.rs:59] &unsorted_partial_answer = [
     (
         "future-generations:000",
@@ -164,11 +85,15 @@ warning: `stroki` (lib) generated 3 warnings
         "!newsletter-subscribe",
     ),
     (
-        "",
-        "",
+        "future-generations:033",
+        "If you’re already on our newsletter, email us at [book.giveaway@80000hours.org](/cdn-cgi/l/email-protection#b1d3dededa9fd6d8c7d4d0c6d0c897d2dedcdcd0c58a8981818181d9dec4c3c29fdec3d6) to get a copy.",
     ),
     (
         "future-generations:035",
+        "</div>",
+    ),
+    (
+        "future-generations:037",
         "</div>",
     ),
     (
@@ -184,12 +109,8 @@ warning: `stroki` (lib) generated 3 warnings
         "",
     ),
     (
-        "",
-        "",
-    ),
-    (
-        "",
-        "",
+        "future-generations:043",
+        "<div class=\"panel clearfix \">",
     ),
     (
         "future-generations:045",
@@ -260,8 +181,8 @@ warning: `stroki` (lib) generated 3 warnings
         "We remain unsure about many of these arguments, but overall we’re persuaded that focusing more on the very long-term effects of our actions is our best bet for now.",
     ),
     (
-        "",
-        "",
+        "future-generations:079",
+        "</div>",
     ),
     (
         "future-generations:081",
@@ -632,8 +553,8 @@ warning: `stroki` (lib) generated 3 warnings
         "<a href=\"https://80000hours.org/speak-with-us/?int_campaign=article__long-term-future\" title=\"\" class=\"btn btn-primary\">Speak to us</a>",
     ),
     (
-        "",
-        "",
+        "future-generations:267",
+        "</div>",
     ),
     (
         "future-generations:269",
@@ -652,8 +573,8 @@ warning: `stroki` (lib) generated 3 warnings
         "### <a class=\"tw--text-off-black hover:tw--text-off-black hover:tw--no-underline focus:tw--text-off-black\" href=\"https://80000hours.org/articles/effective-altruism/\"> <small>Read next:\u{a0}</small> Effective altruism </a>",
     ),
     (
-        "",
-        "",
+        "future-generations:290",
+        "<div class=\"tw--grid xs:tw--grid-flow-col tw--gap-3\"><div class=\"xs:tw--order-last tw--pt-1\">\n[!img~ width=\"720\" height=\"448\" ~[Decorative post preview](https://80000hours.org/wp-content/uploads/2017/03/cost-effectiveness-of-health-interventionsV1-01-e1489184505545-720x448.png)](https://80000hours.org/articles/effective-altruism/)\n</div>",
     ),
     (
         "future-generations:294",
@@ -664,28 +585,28 @@ warning: `stroki` (lib) generated 3 warnings
         "Why some ways of doing good are much more effective than others, how we underestimate the size of the effect.",
     ),
     (
-        "",
-        "",
+        "future-generations:298",
+        "</div>",
     ),
     (
         "future-generations:300",
         "<div>\n<a href=\"https://80000hours.org/articles/effective-altruism/\" class=\"btn btn-primary\">Continue →</a>\n</div>",
     ),
     (
-        "",
-        "",
+        "future-generations:304",
+        "</div>",
     ),
     (
-        "",
-        "",
+        "future-generations:306",
+        "</div>",
     ),
     (
-        "",
-        "",
+        "future-generations:308",
+        "</div>",
     ),
     (
-        "",
-        "",
+        "future-generations:310",
+        "<div class=\"well bg-gray-lighter margin-bottom margin-top padding-top-small padding-bottom-small\">",
     ),
     (
         "future-generations:312",
@@ -696,41 +617,23 @@ warning: `stroki` (lib) generated 3 warnings
         "Join our newsletter and we’ll send you a free copy of _The Precipice_ — a book by philosopher Toby Ord about how to tackle the greatest threats facing humanity.",
     ),
     (
-        "",
-        "",
+        "future-generations:316",
+        "!newsletter-subscribe",
     ),
     (
-        "",
-        "",
+        "future-generations:318",
+        "</div>",
     ),
     (
         "future-generations:320",
         "<div class=\"margin-top-large margin-bottom-large\">\n!social-share",
     ),
     (
-        "",
-        "",
+        "future-generations:323",
+        "</div>",
     ),
     (
         "future-generations:325",
         "<footer><div class=\"margin-top margin-bottom-large\"><ul class=\"post-categories tags\"><li class=\"tags__tag\"><a href=\"https://80000hours.org/topic/causes/future-generations/\" title=\"View all posts on topic: Future Generations\" rel=\"category tag\">Future Generations</a></li><li class=\"tags__tag\"><a href=\"https://80000hours.org/topic/big-picture/longtermism/\" title=\"View all posts on topic: Longtermism\" rel=\"category tag\">Longtermism</a></li><li class=\"tags__tag\"><a href=\"https://80000hours.org/topic/big-picture/moral-philosophy/\" title=\"View all posts on topic: Moral philosophy\" rel=\"category tag\">Moral philosophy</a></li></ul></div></footer>",
     ),
 ]
-[src/lib.rs:142] &key = "future-generations:031"
-[src/lib.rs:142] &key = "future-generations:035"
-[src/lib.rs:142] &key = "future-generations:036"
-[src/lib.rs:142] &key = "future-generations:037"
-[src/lib.rs:142] &key = "future-generations:038"
-[src/lib.rs:142] &key = "future-generations:039"
-[src/lib.rs:142] &key = "future-generations:077"
-[src/lib.rs:142] &key = "future-generations:265"
-[src/lib.rs:142] &key = "future-generations:269"
-[src/lib.rs:142] &key = "future-generations:288"
-[src/lib.rs:142] &key = "future-generations:296"
-[src/lib.rs:142] &key = "future-generations:300"
-[src/lib.rs:142] &key = "future-generations:301"
-[src/lib.rs:142] &key = "future-generations:302"
-[src/lib.rs:142] &key = "future-generations:303"
-[src/lib.rs:142] &key = "future-generations:314"
-[src/lib.rs:142] &key = "future-generations:315"
-[src/lib.rs:142] &key = "future-generations:320"

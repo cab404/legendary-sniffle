@@ -44,26 +44,30 @@ pub fn pipeline(old_array: Vec<(String, String)>, new_string: &str) -> Vec<(Stri
 
     let mut old_array_hashset: BTreeSet<(String, String)> =
         BTreeSet::from_iter(old_array.iter().cloned());
-    let mut new_string_hashset: BTreeSet<String> =
-        BTreeSet::from_iter(new_string_array.iter().cloned());
-
+    let mut new_string_hashset: BTreeMap<String, usize> = BTreeMap::new();
+    for x in &new_string_array {
+        new_string_hashset
+            .entry(x.to_string())
+            .and_modify(|x| *x += 1)
+            .or_insert(1);
+    }
     let mut unsorted_partial_answer = fill_simmilary_strings(
         &new_string_array,
         &mut old_array_hashset,
         &mut new_string_hashset,
     );
-    //dbg!(&old_array);
-    //dbg!(&new_string_array);
-    dbg!(&old_array_hashset);
-    dbg!(&new_string_hashset);
     dbg!(&unsorted_partial_answer);
+    let old_keys = BTreeSet::from_iter(
+        old_array_hashset
+            .iter()
+            .map(|(x, _)| get_key_number(x).unwrap()),
+    );
     fill_all_strings(
+        &old_keys,
         &new_string_array,
         &mut new_string_hashset,
         &mut unsorted_partial_answer,
     );
-    //dbg!(&unsorted_partial_answer);
-    //alphabeticall_sort(&mut unsorted_partial_answer, Box::new(stupid_alphabet()));
     unsorted_partial_answer
 }
 fn string_to_array(str: &str) -> Vec<String> {
@@ -71,41 +75,46 @@ fn string_to_array(str: &str) -> Vec<String> {
 }
 
 fn similar(a: &str, b: &str) -> bool {
-    jaro(a, b) > 0.9
+    jaro(a, b) > 0.8
 }
 
 fn fill_simmilary_strings(
     new_array: &Vec<String>,
     old_array_hashset: &mut BTreeSet<(String, String)>,
-    new_string_hashset: &mut BTreeSet<String>,
+    new_string_hashset: &mut BTreeMap<String, usize>,
 ) -> Vec<(String, String)> {
     let mut answer: Vec<(String, String)> = Vec::with_capacity(new_array.len());
     answer.resize(new_array.len(), (String::from(""), String::from("")));
     for (i, text) in new_array.iter().enumerate() {
         if let Some(str) = old_array_hashset.iter().find(|&x| similar(&x.1, &text)) {
             let str = str.clone();
-            if new_string_hashset.contains(text) {
+            if *new_string_hashset.get(text).unwrap() > 0 {
                 answer[i] = (old_array_hashset.take(&str).unwrap().0, text.to_string());
-                new_string_hashset.remove(text);
+                new_string_hashset.get_mut(text).map(|x| *x -= 1);
             }
         }
     }
     answer
 }
 fn fill_all_strings(
+    old_keys: &BTreeSet<usize>,
     new_array: &Vec<String>,
-    new_string_hashset: &mut BTreeSet<String>,
+    new_string_hashset: &mut BTreeMap<String, usize>,
     old_answer: &mut Vec<(String, String)>,
 ) {
     for (i, text) in new_array.iter().enumerate() {
         if old_answer[i].1.is_empty() {
-            old_answer[i] = (get_unique_key(old_answer, i), text.to_string());
-            new_string_hashset.remove(text);
+            old_answer[i] = (get_unique_key(old_answer, i, old_keys), text.to_string());
+            new_string_hashset.get_mut(text).map(|x| *x -= 1);
         }
     }
 }
 
-fn get_unique_key(old_answer: &mut Vec<(String, String)>, pos: usize) -> String {
+pub fn get_unique_key(
+    old_answer: &mut Vec<(String, String)>,
+    pos: usize,
+    old_keys: &BTreeSet<usize>,
+) -> String {
     let (x, y) = old_answer.split_at(pos);
     let left = x
         .iter()
@@ -115,10 +124,27 @@ fn get_unique_key(old_answer: &mut Vec<(String, String)>, pos: usize) -> String 
     let right = y.iter().find(|(k, _)| !k.is_empty()).map(|x| (x.0).clone());
     match (left, right) {
         (Some(x), Some(y)) => {
-            if get_key_number(&x).unwrap() != get_key_number(&y).unwrap() - 1 {
-                change_key_number(x, 1)
+            let left_key = get_key_number(&x).unwrap();
+            let right_key = get_key_number(&y).unwrap();
+            for i in left_key + 1..right_key {
+                if !old_keys.contains(&(i as usize)) {
+                    let diff = (i - left_key).try_into().unwrap();
+                    return change_key_number(x, diff);
+                }
+            }
+            let mut i = if left_key < right_key {
+                left_key * 10
             } else {
-                panic!()
+                left_key
+            };
+            loop {
+                for j in i..i+10 {
+                    if left_key.to_string() < j.to_string() && j.to_string() < right_key.to_string() && !old_keys.contains(&j) {
+                        let diff = (j - left_key).try_into().unwrap();
+                        return change_key_number(x, diff);
+                    }
+                }
+                i *= 10;
             }
         }
         (Some(x), None) => change_key_number(x, 1),
@@ -139,10 +165,10 @@ pub fn add_usize_i32(x: usize, y: i32) -> Option<usize> {
 }
 
 fn change_key_number(key: String, df: i32) -> String {
-    dbg!(&key);
+    let len = key.split(":").last().unwrap().len();
     let new_number = add_usize_i32(get_key_number(&key).unwrap(), df).unwrap();
     let key = key.trim_end_matches(|x: char| x.is_digit(10)).to_string();
-    key + &format!("{:03}", new_number)
+    key + &format!("{:0len$}", new_number)
 }
 
 fn stupid_alphabet() -> impl Iterator<Item = String> {
