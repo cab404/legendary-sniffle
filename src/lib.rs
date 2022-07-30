@@ -1,7 +1,6 @@
-use alphabet::*;
-use std::collections::{BTreeMap, BTreeSet, HashMap};
-use std::fs::read_to_string;
-use strsim::{jaro, levenshtein};
+use std::collections::{BTreeMap, BTreeSet};
+use std::fs::{read_to_string, File};
+use strsim::jaro;
 
 pub struct Config {
     pub old_json: String,
@@ -22,7 +21,7 @@ impl Config {
     }
 }
 
-pub fn run(config: Config) {
+pub fn run(config: Config, path: File) {
     let old_array = read_to_string(&config.old_json).unwrap();
     let new_string = read_to_string(&config.new_string).unwrap();
 
@@ -32,8 +31,7 @@ pub fn run(config: Config) {
     let final_json = pipeline(old_array, &new_string);
 
     serde_json::to_writer_pretty(
-        std::fs::File::create("new-".to_string() + config.old_json.split("/").last().unwrap())
-            .unwrap(),
+        path,
         &final_json,
     )
     .unwrap();
@@ -56,7 +54,7 @@ pub fn pipeline(old_array: Vec<(String, String)>, new_string: &str) -> Vec<(Stri
         &mut old_array_hashset,
         &mut new_string_hashset,
     );
-    dbg!(&unsorted_partial_answer);
+    //dbg!(&unsorted_partial_answer);
     let old_keys = BTreeSet::from_iter(
         old_array_hashset
             .iter()
@@ -89,7 +87,7 @@ pub fn fill_similar_strings(
     answer.resize(new_array.len(), (String::from(""), String::from("")));
     for (i, text) in new_array.iter().enumerate() {
         if let Some(str) = old_array_hashset.iter().find(|&x| similar(&x.1, &text)) {
-            dbg!(&text);
+            //dbg!(&text);
             let str = str.clone();
             if *new_string_hashset.get(text).unwrap() > 0 {
                 answer[i] = (old_array_hashset.take(&str).unwrap().0, text.to_string());
@@ -125,10 +123,10 @@ pub fn get_unique_key(
         .find(|(k, _)| !k.is_empty())
         .map(|x| (x.0).clone());
     let right = y.iter().skip(1).find(|(k, _)| !k.is_empty()).map(|x| (x.0).clone());
-    dbg!(&left, &right);
+    //dbg!(&left, &right);
     match (left, right) {
         (Some(x), Some(y)) => {
-            let mut left_key = get_key_number(&x).unwrap();
+            let left_key = get_key_number(&x).unwrap();
             let right_key = get_key_number(&y).unwrap();
             for i in left_key + 1..right_key {
                 if !old_keys.contains(&(i as usize)) {
@@ -144,7 +142,7 @@ pub fn get_unique_key(
             };
             loop {
                 for j in i..i + 10 {
-                    dbg!(&j);
+                    //dbg!(&j);
                     if left_key.to_string() < j.to_string()
                         && j.to_string() < right_key.to_string()
                         && !old_keys.contains(&j)
@@ -180,14 +178,9 @@ fn change_key_number(key: String, df: i32) -> String {
     key + &format!("{:0len$}", new_number)
 }
 
-fn stupid_alphabet() -> impl Iterator<Item = String> {
-    alphabet!(SCREAM = "abcdefghijklmnopqrstuvwxyz");
-    SCREAM.iter_words().skip(1 + 26 + 26 * 26)
-}
-
 pub fn alphabetical_sort(array: &mut Vec<(String, String)>, old_keys: &BTreeSet<usize>) {
     for i in 0..array.len() {
-        dbg!(&array[i]);
+        //dbg!(&array[i]);
         match (array.get(i.checked_sub(1).unwrap_or(usize::MAX)), array.get(i + 1)) {
             (Some((x, _)), Some((y, _))) => {
                 if !(x < &array[i].0 && &array[i].0 < y) {

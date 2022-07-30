@@ -1,9 +1,7 @@
 use std::{
-    collections::{BTreeMap, BTreeSet, HashMap},
-    fs,
+    collections::{BTreeMap, BTreeSet},
 };
-use stroki::{alphabetical_sort, fill_similar_strings, get_unique_key, pipeline, run, Config};
-use strsim::jaro;
+use stroki::{alphabetical_sort, fill_similar_strings, get_unique_key};
 #[test]
 fn get_key_simple() {
     let mut old_answer = vec![
