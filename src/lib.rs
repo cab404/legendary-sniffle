@@ -1,7 +1,7 @@
 use alphabet::*;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fs::read_to_string;
-use strsim::jaro;
+use strsim::{jaro, levenshtein};
 
 pub struct Config {
     pub old_json: String,
@@ -51,7 +51,7 @@ pub fn pipeline(old_array: Vec<(String, String)>, new_string: &str) -> Vec<(Stri
             .and_modify(|x| *x += 1)
             .or_insert(1);
     }
-    let mut unsorted_partial_answer = fill_simmilary_strings(
+    let mut unsorted_partial_answer = fill_similar_strings(
         &new_string_array,
         &mut old_array_hashset,
         &mut new_string_hashset,
@@ -68,6 +68,7 @@ pub fn pipeline(old_array: Vec<(String, String)>, new_string: &str) -> Vec<(Stri
         &mut new_string_hashset,
         &mut unsorted_partial_answer,
     );
+    alphabetical_sort(&mut unsorted_partial_answer, &old_keys);
     unsorted_partial_answer
 }
 fn string_to_array(str: &str) -> Vec<String> {
@@ -76,9 +77,10 @@ fn string_to_array(str: &str) -> Vec<String> {
 
 fn similar(a: &str, b: &str) -> bool {
     jaro(a, b) > 0.8
+    //levenshtein(a, b) < std::cmp::max(a.len(), b.len()) * 3 / 2 - std::cmp::min(a.len(), b.len())
 }
 
-fn fill_simmilary_strings(
+pub fn fill_similar_strings(
     new_array: &Vec<String>,
     old_array_hashset: &mut BTreeSet<(String, String)>,
     new_string_hashset: &mut BTreeMap<String, usize>,
@@ -87,6 +89,7 @@ fn fill_simmilary_strings(
     answer.resize(new_array.len(), (String::from(""), String::from("")));
     for (i, text) in new_array.iter().enumerate() {
         if let Some(str) = old_array_hashset.iter().find(|&x| similar(&x.1, &text)) {
+            dbg!(&text);
             let str = str.clone();
             if *new_string_hashset.get(text).unwrap() > 0 {
                 answer[i] = (old_array_hashset.take(&str).unwrap().0, text.to_string());
@@ -121,10 +124,11 @@ pub fn get_unique_key(
         .rev()
         .find(|(k, _)| !k.is_empty())
         .map(|x| (x.0).clone());
-    let right = y.iter().find(|(k, _)| !k.is_empty()).map(|x| (x.0).clone());
+    let right = y.iter().skip(1).find(|(k, _)| !k.is_empty()).map(|x| (x.0).clone());
+    dbg!(&left, &right);
     match (left, right) {
         (Some(x), Some(y)) => {
-            let left_key = get_key_number(&x).unwrap();
+            let mut left_key = get_key_number(&x).unwrap();
             let right_key = get_key_number(&y).unwrap();
             for i in left_key + 1..right_key {
                 if !old_keys.contains(&(i as usize)) {
@@ -135,11 +139,16 @@ pub fn get_unique_key(
             let mut i = if left_key < right_key {
                 left_key * 10
             } else {
+                //left_key = right_key;
                 left_key
             };
             loop {
-                for j in i..i+10 {
-                    if left_key.to_string() < j.to_string() && j.to_string() < right_key.to_string() && !old_keys.contains(&j) {
+                for j in i..i + 10 {
+                    dbg!(&j);
+                    if left_key.to_string() < j.to_string()
+                        && j.to_string() < right_key.to_string()
+                        && !old_keys.contains(&j)
+                    {
                         let diff = (j - left_key).try_into().unwrap();
                         return change_key_number(x, diff);
                     }
@@ -176,13 +185,26 @@ fn stupid_alphabet() -> impl Iterator<Item = String> {
     SCREAM.iter_words().skip(1 + 26 + 26 * 26)
 }
 
-fn alphabeticall_sort(
-    array: &mut Vec<(String, String)>,
-    mut iter: Box<dyn Iterator<Item = String>>,
-) {
-    for x in array {
-        if !x.0.is_empty() {
-            x.0 = iter.next().unwrap() + &x.0;
+pub fn alphabetical_sort(array: &mut Vec<(String, String)>, old_keys: &BTreeSet<usize>) {
+    for i in 0..array.len() {
+        dbg!(&array[i]);
+        match (array.get(i.checked_sub(1).unwrap_or(usize::MAX)), array.get(i + 1)) {
+            (Some((x, _)), Some((y, _))) => {
+                if !(x < &array[i].0 && &array[i].0 < y) {
+                    array[i].0 = get_unique_key(array, i, old_keys);
+                }
+            }
+            (None, Some((y, _))) => {
+                if !(&array[i].0 < y) {
+                    array[i].0 = get_unique_key(array, i, old_keys);
+                }
+            }
+            (Some((x, _)), None) => {
+                if !(x < &array[i].0) {
+                    array[i].0 = get_unique_key(array, i, old_keys);
+                }
+            }
+            (None, None) => {}
         }
     }
 }
