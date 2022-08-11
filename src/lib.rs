@@ -30,11 +30,7 @@ pub fn run(config: Config, path: File) {
 
     let final_json = pipeline(old_array, &new_string);
 
-    serde_json::to_writer_pretty(
-        path,
-        &final_json,
-    )
-    .unwrap();
+    serde_json::to_writer_pretty(path, &final_json).unwrap();
 }
 
 pub fn pipeline(old_array: Vec<(String, String)>, new_string: &str) -> Vec<(String, String)> {
@@ -122,7 +118,11 @@ pub fn get_unique_key(
         .rev()
         .find(|(k, _)| !k.is_empty())
         .map(|x| (x.0).clone());
-    let right = y.iter().skip(1).find(|(k, _)| !k.is_empty()).map(|x| (x.0).clone());
+    let right = y
+        .iter()
+        .skip(1)
+        .find(|(k, _)| !k.is_empty())
+        .map(|x| (x.0).clone());
     //dbg!(&left, &right);
     match (left, right) {
         (Some(x), Some(y)) => {
@@ -181,7 +181,10 @@ fn change_key_number(key: String, df: i32) -> String {
 pub fn alphabetical_sort(array: &mut Vec<(String, String)>, old_keys: &BTreeSet<usize>) {
     for i in 0..array.len() {
         //dbg!(&array[i]);
-        match (array.get(i.checked_sub(1).unwrap_or(usize::MAX)), array.get(i + 1)) {
+        match (
+            array.get(i.checked_sub(1).unwrap_or(usize::MAX)),
+            array.get(i + 1),
+        ) {
             (Some((x, _)), Some((y, _))) => {
                 if !(x < &array[i].0 && &array[i].0 < y) {
                     array[i].0 = get_unique_key(array, i, old_keys);

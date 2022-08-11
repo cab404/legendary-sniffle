@@ -1,6 +1,4 @@
-use std::{
-    collections::{BTreeMap, BTreeSet},
-};
+use std::collections::{BTreeMap, BTreeSet};
 use stroki::{alphabetical_sort, fill_similar_strings, get_unique_key};
 #[test]
 fn get_key_simple() {
@@ -54,9 +52,12 @@ fn fill_simmilary_strings_simple() {
         ("b".to_string(), 1),
         ("c".to_string(), 1),
     ]);
-    let t: Vec<(String, String)> = Vec::new();
-    assert_eq!(
-        &t,
+    let t = assert_eq!(
+        &vec![
+            ("x:1".to_string(), "a".to_string()),
+            ("x:3".to_string(), "c".to_string()),
+            ("x:2".to_string(), "b".to_string()),
+        ],
         &fill_similar_strings(&new_array, &mut old_answer, &mut new_string_hashset)
     );
 }
