@@ -1,5 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs::{read_to_string, File};
+use serde::Serialize;
+use serde_json::Map;
 use strsim::jaro;
 
 pub struct Config {
@@ -29,8 +31,12 @@ pub fn run(config: Config, path: File) {
     let old_array: Vec<(String, String)> = old_array.into_iter().collect();
 
     let final_json = pipeline(old_array, &new_string);
+    let mut out = Map::new();
+    for (k, v) in final_json.into_iter() {
+        out.insert(k, v.into());
+    }
 
-    serde_json::to_writer_pretty(path, &final_json).unwrap();
+    serde_json::to_writer_pretty(path, &out).unwrap();
 }
 
 pub fn pipeline(old_array: Vec<(String, String)>, new_string: &str) -> Vec<(String, String)> {
