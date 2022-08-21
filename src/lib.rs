@@ -105,7 +105,7 @@ fn fill_all_strings(
     old_answer: &mut Vec<(String, String)>,
 ) {
     for (i, text) in new_array.iter().enumerate() {
-        if old_answer[i].1.is_empty() {
+        if old_answer[i].1.is_empty() && old_answer[i].0.is_empty() {
             // dbg!(line!());
             old_answer[i] = (get_unique_key(old_answer, i, old_keys), text.to_string());
             new_string_hashset.get_mut(text).map(|x| *x -= 1);
