@@ -1,7 +1,6 @@
+use serde_json::Map;
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs::{read_to_string, File};
-use serde::Serialize;
-use serde_json::Map;
 use strsim::jaro;
 
 pub struct Config {
@@ -56,7 +55,7 @@ pub fn pipeline(old_array: Vec<(String, String)>, new_string: &str) -> Vec<(Stri
         &mut old_array_hashset,
         &mut new_string_hashset,
     );
-    //dbg!(&unsorted_partial_answer);
+    // dbg!(&unsorted_partial_answer);
     let old_keys = BTreeSet::from_iter(
         old_array_hashset
             .iter()
@@ -107,6 +106,7 @@ fn fill_all_strings(
 ) {
     for (i, text) in new_array.iter().enumerate() {
         if old_answer[i].1.is_empty() {
+            // dbg!(line!());
             old_answer[i] = (get_unique_key(old_answer, i, old_keys), text.to_string());
             new_string_hashset.get_mut(text).map(|x| *x -= 1);
         }
@@ -129,7 +129,7 @@ pub fn get_unique_key(
         .skip(1)
         .find(|(k, _)| !k.is_empty())
         .map(|x| (x.0).clone());
-    //dbg!(&left, &right);
+    // dbg!(&left, &right);
     match (left, right) {
         (Some(x), Some(y)) => {
             let left_key = get_key_number(&x).unwrap();
@@ -158,10 +158,13 @@ pub fn get_unique_key(
                     }
                 }
                 i *= 10;
+                if left_key == 0 || i / left_key > 1000 {
+                    return change_key_number(x, 1);
+                }
             }
         }
         (Some(x), None) => change_key_number(x, 1),
-        (None, Some(y)) => change_key_number(y, -1),
+        (None, Some(y)) => change_key_number(y, 0),
         (None, None) => "a".to_string(),
     }
 }
@@ -170,6 +173,7 @@ fn get_key_number(key: &str) -> Result<usize, std::num::ParseIntError> {
 }
 
 pub fn add_usize_i32(x: usize, y: i32) -> Option<usize> {
+    // dbg!(x, y);
     if y.is_negative() {
         x.checked_sub(y.wrapping_abs() as usize)
     } else {
