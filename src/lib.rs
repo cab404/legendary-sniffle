@@ -1,6 +1,7 @@
 use serde_json::Map;
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs::{read_to_string, File};
+use std::num::IntErrorKind;
 use strsim::jaro;
 
 pub struct Config {
@@ -41,7 +42,7 @@ pub fn run(config: Config, path: File) {
 pub fn pipeline(old_array: Vec<(String, String)>, new_string: &str) -> Vec<(String, String)> {
     let new_string_array = string_to_array(new_string);
 
-    let mut old_array_hashset: BTreeSet<(String, String)> =
+    let old_array_hashset: BTreeSet<(String, String)> =
         BTreeSet::from_iter(old_array.iter().cloned());
     let mut new_string_hashset: BTreeMap<String, usize> = BTreeMap::new();
     for x in &new_string_array {
@@ -52,7 +53,7 @@ pub fn pipeline(old_array: Vec<(String, String)>, new_string: &str) -> Vec<(Stri
     }
     let mut unsorted_partial_answer = fill_similar_strings(
         &new_string_array,
-        &mut old_array_hashset,
+        &mut old_array_hashset.clone(),
         &mut new_string_hashset,
     );
     // dbg!(&unsorted_partial_answer);
@@ -67,6 +68,8 @@ pub fn pipeline(old_array: Vec<(String, String)>, new_string: &str) -> Vec<(Stri
         &mut new_string_hashset,
         &mut unsorted_partial_answer,
     );
+    // dbg!(&unsorted_partial_answer);
+    // dbg!(&old_keys[]);
     alphabetical_sort(&mut unsorted_partial_answer, &old_keys);
     unsorted_partial_answer
 }
@@ -119,52 +122,38 @@ pub fn get_unique_key(
     old_keys: &BTreeSet<usize>,
 ) -> String {
     let (x, y) = old_answer.split_at(pos);
-    let left = x
-        .iter()
-        .rev()
-        .find(|(k, _)| !k.is_empty())
-        .map(|x| (x.0).clone());
-    let right = y
-        .iter()
-        .skip(1)
-        .find(|(k, _)| !k.is_empty())
-        .map(|x| (x.0).clone());
+    let left = x.iter().rev().find(|(k, _)| !k.is_empty()).map(|x| &x.0);
+    let right = y.iter().skip(1).find(|(k, _)| !k.is_empty()).map(|x| &x.0);
     // dbg!(&left, &right);
     match (left, right) {
         (Some(x), Some(y)) => {
             let left_key = get_key_number(&x).unwrap();
-            let right_key = get_key_number(&y).unwrap();
+            let mut right_key = get_key_number(&y).unwrap();
+            while left_key > right_key {
+                right_key *= 10;
+            }
+
+            // dbg!(left_key, right_key);
             for i in left_key + 1..right_key {
                 if !old_keys.contains(&(i as usize)) {
                     let diff = (i - left_key).try_into().unwrap();
-                    return change_key_number(x, diff);
+                    return change_key_number(x.clone(), diff, 0).unwrap();
                 }
             }
-            let mut i = if left_key < right_key {
-                left_key * 10
-            } else {
-                //left_key = right_key;
-                left_key
-            };
+            let mut base = (left_key + right_key) * 5 - left_key;
             loop {
-                for j in i..i + 10 {
-                    //dbg!(&j);
-                    if left_key.to_string() < j.to_string()
-                        && j.to_string() < right_key.to_string()
-                        && !old_keys.contains(&j)
-                    {
-                        let diff = (j - left_key).try_into().unwrap();
-                        return change_key_number(x, diff);
-                    }
-                }
-                i *= 10;
-                if left_key == 0 || i / left_key > 1000 {
-                    return change_key_number(x, 1);
+                if !old_keys.contains(&(base + left_key)) {
+                    return match change_key_number(x.clone(), base as i32, 1) {
+                        Ok(string) => string,
+                        Err(_) => y.clone(),
+                    };
+                } else {
+                    base += 1;
                 }
             }
         }
-        (Some(x), None) => change_key_number(x, 1),
-        (None, Some(y)) => change_key_number(y, 0),
+        (Some(x), None) => change_key_number(x.clone(), 1, 0).unwrap(),
+        (None, Some(y)) => change_key_number(y.clone(), 0, 0).unwrap(),
         (None, None) => "a".to_string(),
     }
 }
@@ -173,7 +162,6 @@ fn get_key_number(key: &str) -> Result<usize, std::num::ParseIntError> {
 }
 
 pub fn add_usize_i32(x: usize, y: i32) -> Option<usize> {
-    // dbg!(x, y);
     if y.is_negative() {
         x.checked_sub(y.wrapping_abs() as usize)
     } else {
@@ -181,16 +169,16 @@ pub fn add_usize_i32(x: usize, y: i32) -> Option<usize> {
     }
 }
 
-fn change_key_number(key: String, df: i32) -> String {
-    let len = key.split(":").last().unwrap().len();
-    let new_number = add_usize_i32(get_key_number(&key).unwrap(), df).unwrap();
+fn change_key_number(key: String, df: i32, len: usize) -> Result<String, IntErrorKind> {
+    let len = key.split(":").last().unwrap().len() + len;
+    let new_number =
+        add_usize_i32(get_key_number(&key).unwrap(), df).ok_or(IntErrorKind::InvalidDigit)?;
     let key = key.trim_end_matches(|x: char| x.is_digit(10)).to_string();
-    key + &format!("{:0len$}", new_number)
+    Ok(key + &format!("{:0len$}", new_number))
 }
 
 pub fn alphabetical_sort(array: &mut Vec<(String, String)>, old_keys: &BTreeSet<usize>) {
     for i in 0..array.len() {
-        //dbg!(&array[i]);
         match (
             array.get(i.checked_sub(1).unwrap_or(usize::MAX)),
             array.get(i + 1),
