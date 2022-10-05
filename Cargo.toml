@@ -1,5 +1,5 @@
 [package]
-name = "stroki"
+name = "diffhorror"
 version = "0.1.0"
 edition = "2021"
 
@@ -10,3 +10,4 @@ strsim = "0.10.0"
 serde_json = "1.0.82"
 serde = {version = "1.0.138", features = ["derive"] }
 alphabet = "0.2.2"
+clap = { version = "4.0.9", features = ["derive"] }

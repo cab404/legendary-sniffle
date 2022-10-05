@@ -3,10 +3,9 @@ set -e
 cp ../examples/future-generations.md text.md
 cp ../examples/future-generations.json text.json
 
-cargo build --release
 
 runCycle() {
-    time ../target/release/stroki text.json text.md && mv new-text.json text.json
+    time cargo run --release -- --old-json text.json --new-string text.md --new-json text.json --new-keys keys.json
 }
 
 for I in {1..10}; do

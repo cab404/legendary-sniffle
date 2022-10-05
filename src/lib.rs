@@ -1,67 +1,97 @@
+use clap::builder::PathBufValueParser;
+use clap::{ArgGroup, Parser};
 use serde_json::Map;
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs::{read_to_string, File};
 use std::num::IntErrorKind;
+use std::path::{Path, PathBuf};
 use strsim::jaro;
 
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
 pub struct Config {
-    pub old_json: String,
-    pub new_string: String,
-}
-impl Config {
-    pub fn new(args: &[String]) -> Result<Config, &'static str> {
-        if args.len() < 3 {
-            return Err("not enough arguments");
-        }
-        let old_json = args[1].clone();
-        let new_string = args[2].clone();
+    #[arg(long)]
+    pub old_json: PathBuf,
+    #[arg(long)]
+    pub new_string: PathBuf,
 
-        Ok(Config {
-            old_json,
-            new_string,
-        })
-    }
+    #[arg(long = "new-json", value_name = "NEW_JSON_NAME")]
+    pub new_json_name: PathBuf,
+    #[arg(long = "new-keys", value_name = "NEW_USED_KEYS_NAME")]
+    pub new_used_keys_name: PathBuf,
+
+    #[arg(short, long, value_name = "USED_KEYS")]
+    pub used_keys: Option<PathBuf>,
 }
 
-pub fn run(config: Config, path: File) {
-    let old_array = read_to_string(&config.old_json).unwrap();
-    let new_string = read_to_string(&config.new_string).unwrap();
+pub fn run(config: Config) {
+    let _old_array = read_to_string(&config.old_json).unwrap();
+    let _new_string = read_to_string(&config.new_string).unwrap();
 
-    let old_array: BTreeMap<String, String> = serde_json::from_str(&old_array).unwrap();
-    let old_array: Vec<(String, String)> = old_array.into_iter().collect();
+    let _used_keys = match config.used_keys {
+        Some(x) => read_to_string(x).unwrap(),
+        None => String::from(""),
+    };
 
-    let final_json = pipeline(old_array, &new_string);
-    let mut out = Map::new();
+    let _old_array: BTreeMap<String, String> = serde_json::from_str(&_old_array).unwrap();
+    let _old_array: Vec<(String, String)> = _old_array.into_iter().collect();
+
+    let _used_keys: BTreeMap<String, String> =
+        serde_json::from_str(&_used_keys).unwrap_or_default();
+    let _used_keys: Vec<(String, String)> = _used_keys.into_iter().collect();
+
+    let (final_json, _unused_keys) = pipeline(_old_array, _used_keys, &_new_string);
+
+    let mut _result = Map::new();
     for (k, v) in final_json.into_iter() {
-        out.insert(k, v.into());
+        _result.insert(k, v.into());
     }
 
-    serde_json::to_writer_pretty(path, &out).unwrap();
+    let mut _new_used_keys = Map::new();
+    for (k, v) in _unused_keys.into_iter() {
+        _new_used_keys.insert(k, v.into());
+    }
+
+    serde_json::to_writer_pretty(File::create(config.new_json_name).unwrap(), &_result).unwrap();
+    serde_json::to_writer_pretty(
+        File::create(config.new_used_keys_name).unwrap(),
+        &_new_used_keys,
+    )
+    .unwrap();
 }
 
-pub fn pipeline(old_array: Vec<(String, String)>, new_string: &str) -> Vec<(String, String)> {
+pub fn pipeline(
+    old_array: Vec<(String, String)>,
+    _used_keys: Vec<(String, String)>,
+    new_string: &str,
+) -> (Vec<(String, String)>, BTreeSet<(String, String)>) {
     let new_string_array = string_to_array(new_string);
 
-    let old_array_hashset: BTreeSet<(String, String)> =
+    let mut old_array_hashset: BTreeSet<(String, String)> =
         BTreeSet::from_iter(old_array.iter().cloned());
     let mut new_string_hashset: BTreeMap<String, usize> = BTreeMap::new();
+
     for x in &new_string_array {
         new_string_hashset
             .entry(x.to_string())
             .and_modify(|x| *x += 1)
             .or_insert(1);
     }
+
     let mut unsorted_partial_answer = fill_similar_strings(
         &new_string_array,
-        &mut old_array_hashset.clone(),
+        &mut old_array_hashset,
         &mut new_string_hashset,
     );
+
     // dbg!(&unsorted_partial_answer);
     let old_keys = BTreeSet::from_iter(
-        old_array_hashset
+        old_array
             .iter()
-            .map(|(x, _)| get_key_number(x).unwrap()),
+            .map(|(x, _)| get_key_number(x).unwrap())
+            .chain(_used_keys.iter().map(|(x, _)| get_key_number(x).unwrap())),
     );
+
     fill_all_strings(
         &old_keys,
         &new_string_array,
@@ -71,7 +101,7 @@ pub fn pipeline(old_array: Vec<(String, String)>, new_string: &str) -> Vec<(Stri
     // dbg!(&unsorted_partial_answer);
     // dbg!(&old_keys[]);
     alphabetical_sort(&mut unsorted_partial_answer, &old_keys);
-    unsorted_partial_answer
+    (unsorted_partial_answer, old_array_hashset)
 }
 fn string_to_array(str: &str) -> Vec<String> {
     str.split("\n\n").map(|x| x.to_string()).collect()
@@ -89,6 +119,7 @@ pub fn fill_similar_strings(
 ) -> Vec<(String, String)> {
     let mut answer: Vec<(String, String)> = Vec::with_capacity(new_array.len());
     answer.resize(new_array.len(), (String::from(""), String::from("")));
+
     for (i, text) in new_array.iter().enumerate() {
         if let Some(str) = old_array_hashset.iter().find(|&x| similar(&x.1, &text)) {
             //dbg!(&text);
