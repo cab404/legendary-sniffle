@@ -5,6 +5,8 @@ use std::fs::{read_to_string, File};
 use std::num::IntErrorKind;
 use std::path::PathBuf;
 use strsim::jaro;
+use log::*;
+use colored::Colorize;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -21,6 +23,8 @@ pub struct Config {
 
     #[arg(short, long, value_name = "USED_KEYS")]
     pub used_keys: Option<PathBuf>,
+    #[arg(short, long)]
+    pub logging_level: Option<bool>,
 }
 
 pub fn run(config: Config) {
@@ -36,7 +40,7 @@ pub fn run(config: Config) {
     let _old_array: Vec<(String, String)> = _old_array.into_iter().collect();
 
     let _used_keys: Vec<String> =
-        serde_json::from_str(&_used_keys).unwrap();
+        serde_json::from_str(&_used_keys).unwrap_or_default();
 
     let (final_json, _unused_keys) = pipeline(_old_array, _used_keys, &_new_string);
 
@@ -95,9 +99,15 @@ pub fn pipeline(
     // dbg!(&unsorted_partial_answer);
     // dbg!(&old_keys[]);
     alphabetical_sort(&mut unsorted_partial_answer, &old_keys);
-    let old_array_hashset: Vec<String> = old_array_hashset
+
+    let _new_unused_keys = old_array_hashset
         .into_iter()
         .map(|(x, _)| x)
+        .collect::<Vec<String>>();
+
+    trace!("new unused keys are {:?}", &_new_unused_keys);
+    let old_array_hashset: Vec<String> = _new_unused_keys
+        .into_iter()
         .chain(_used_keys.into_iter())
         .collect::<Vec<String>>();
     (unsorted_partial_answer, old_array_hashset)
@@ -116,19 +126,25 @@ pub fn fill_similar_strings(
     old_array_hashset: &mut BTreeSet<(String, String)>,
     new_string_hashset: &mut BTreeMap<String, usize>,
 ) -> Vec<(String, String)> {
+    let mut _log_count_inserted_strings = 0usize;
+    let _log_len = old_array_hashset.len();
     let mut answer: Vec<(String, String)> = Vec::with_capacity(new_array.len());
     answer.resize(new_array.len(), (String::from(""), String::from("")));
 
     for (i, text) in new_array.iter().enumerate() {
         if let Some(str) = old_array_hashset.iter().find(|&x| similar(&x.1, &text)) {
-            //dbg!(&text);
+            _log_count_inserted_strings += 1;
             let str = str.clone();
+            trace!("old string {} and new string {} with key {} are similar", &text.yellow(), &str.1.yellow(), &str.0.green());
             if *new_string_hashset.get(text).unwrap() > 0 {
                 answer[i] = (old_array_hashset.take(&str).unwrap().0, text.to_string());
                 new_string_hashset.get_mut(text).map(|x| *x -= 1);
             }
+        } else {
+            info!("new string {} has no new similar strings", &text.red());
         }
     }
+    info!("{} old strings out of {} inserted", _log_count_inserted_strings, _log_len);
     answer
 }
 fn fill_all_strings(
@@ -139,8 +155,8 @@ fn fill_all_strings(
 ) {
     for (i, text) in new_array.iter().enumerate() {
         if old_answer[i].1.is_empty() && old_answer[i].0.is_empty() {
-            // dbg!(line!());
             old_answer[i] = (get_unique_key(old_answer, i, old_keys), text.to_string());
+            info!("inserting new string {} with new unique key {}", old_answer[i].1.yellow(), old_answer[i].0.green());
             new_string_hashset.get_mut(text).map(|x| *x -= 1);
         }
     }
@@ -215,17 +231,23 @@ pub fn alphabetical_sort(array: &mut Vec<(String, String)>, old_keys: &BTreeSet<
         ) {
             (Some((x, _)), Some((y, _))) => {
                 if !(x < &array[i].0 && &array[i].0 < y) {
-                    array[i].0 = get_unique_key(array, i, old_keys);
+                    let tmp = get_unique_key(array, i, old_keys);
+                    info!("changing old_key {} to new key {}", &array[i].0.yellow(), &tmp.green());
+                    array[i].0 = tmp;
                 }
             }
             (None, Some((y, _))) => {
                 if !(&array[i].0 < y) {
-                    array[i].0 = get_unique_key(array, i, old_keys);
+                    let tmp = get_unique_key(array, i, old_keys);
+                    info!("changing old_key {} to new key {}", &array[i].0.yellow(), &tmp.green());
+                    array[i].0 = tmp;
                 }
             }
             (Some((x, _)), None) => {
                 if !(x < &array[i].0) {
-                    array[i].0 = get_unique_key(array, i, old_keys);
+                    let tmp = get_unique_key(array, i, old_keys);
+                    info!("changing old_key {} to new key {}", &array[i].0.yellow(), &tmp.green());
+                    array[i].0 = tmp;
                 }
             }
             (None, None) => {}
