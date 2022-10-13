@@ -31,17 +31,15 @@ We’ll also send you updates on our latest research, opportunities to work on e
 
 !newsletter-subscribe
 
-If you’re already on our newsletter, email us at [book.giveaway@80000hours.org](/cdn-cgi/l/email-protection#b1d3dededa9fd6d8c7d4d0c6d0c897d2dedcdcd0c58a8981818181d9dec4c3c29fdec3d6) to get a copy.
+If you’re already on our newsletter, email us at [book.giveaway@80000hours.org](/cdn-cgi/l/email-protection#f1939e9e9adf9698879490869088d7929e9c9c9085cac9c1c1c1c1999e848382df9e8396) to get a copy.
 
 </div>
 
 </div>
 
-If you prefer to start by watching something, this video by Kurzgesagt presents the idea that there could be many future generations with very good lives. We’ll explain what this implies in the rest of this article.
+If you prefer to start with a video, this presentation by Joseph Carlsmith is also a good introduction:
 
-(Also, if you’re visiting us _from_ this video — welcome! We hope you like what you read.)
-
-!ytb-LEENEFaVUzU
+!ytb-Ccq2Ql8FcY0
 
 <div class="panel clearfix ">
 
@@ -271,19 +269,22 @@ We’ve helped hundreds of people choose an area to focus, make connections, and
 
 ## Further reading
 
-- Chapters 1-4 [_On the Overwhelming Importance of Shaping the Far Future_](https://80000hours.org/wp-content/uploads/2022/01/Beckstead-Nick-On-the-Overwhelming-Importance-of-Shaping-the-Far-Future-better-formatting.pdf) by Nick Beckstead (also discussed [in a podcast episode with us](https://80000hours.org/2017/10/nick-beckstead-giving-billions/)). This thesis builds upon a seminal paper by Nick Bostrom, [_Astronomical Waste_](https://nickbostrom.com/astronomical/waste.html), which makes the argument that the future has overwhelming value for [utilitarians](https://www.utilitarianism.net/), as well as [_Existential Risk Prevention as a Global Priority_](http://www.existential-risk.org/concept.html).
+- [Moral uncertainty: how to act when you’re uncertain about what’s good](https://80000hours.org/articles/moral-uncertainty/)
+- Chapters 1-4 [_On the Overwhelming Importance of Shaping the Far Future_](https://80000hours.org/wp-content/uploads/2022/01/Beckstead-Nick-On-the-Overwhelming-Importance-of-Shaping-the-Far-Future-better-formatting.pdf) by Nick Beckstead. This thesis builds upon a seminal paper by Nick Bostrom, [_Astronomical Waste_](https://nickbostrom.com/astronomical/waste.html), which makes the argument that the future has overwhelming value for [utilitarians](https://www.utilitarianism.net/), as well as [_Existential Risk Prevention as a Global Priority_](http://www.existential-risk.org/concept.html).
 - A more recent and systematic academic treatment of the topic can be found here: [The Case for Strong Longtermism](https://globalprioritiesinstitute.org/hilary-greaves-william-macaskill-the-case-for-strong-longtermism-2/), by Hilary Greaves and Will MacAskill
-- Dr Toby Ord discusses these arguments in his book, [_The Precipice_](https://theprecipice.com/), and in a [podcast episode with us](https://80000hours.org/articles/why-the-long-run-future-matters-more-than-anything-else-and-what-we-should-do-about-it/).
+- Dr Nick Beckstead also discusses his thesis [in our podcast](https://80000hours.org/2017/10/nick-beckstead-giving-billions/).
+- Dr Toby Ord discusses these arguments in his book, [_The Precipice_](https://theprecipice.com/)
+- Dr Toby Ord also explores many of these arguments with us in another [podcast](https://80000hours.org/articles/why-the-long-run-future-matters-more-than-anything-else-and-what-we-should-do-about-it/).
 - Benjamin Todd and Arden Koehler discuss varieties of longtermism in [this podcast](https://80000hours.org/podcast/episodes/ben-todd-on-varieties-of-longtermism/).
 - [Our podcast with Alexander Berger](https://80000hours.org/podcast/episodes/alexander-berger-improving-global-health-wellbeing-clear-direct-ways/) presents a case for focusing instead on near-term gains in global health and wellbeing.
 - ​​​​In this podcast, Holden Karnofsky talks about the case that we’re living in [the most important century](https://80000hours.org/podcast/episodes/holden-karnofsky-most-important-century/). And in a blog post, [_Are we living at the most influential time in history?_](https://forum.effectivealtruism.org/posts/XXLf6FmWujkxna3E6/are-we-living-at-the-most-influential-time-in-history-1), Dr Will MacAskill responds with counterarguments.
+- [This could be the most important century](https://80000hours.org/articles/the-most-important-century/)
 - [Why despite global progress, humanity is probably facing its most dangerous time ever.](https://80000hours.org/articles/extinction-risk/)
+- [Fifty-one policy and research ideas](https://80000hours.org/2020/04/longtermist-policy-ideas/) for reducing existential risk
 - [Carl Shulman on the common-sense case for existential risk work and its practical implications](https://80000hours.org/podcast/episodes/carl-shulman-common-sense-case-existential-risks/)
 - An alternative [introduction to longtermism](https://www.effectivealtruism.org/articles/longtermism/), which goes through somewhat different objections and reasoning
 - Introductory overviews on longtermism from the [Forethought Foundation for Global Priorities Research](https://www.forethought.org/longtermism), [Our World In Data](https://ourworldindata.org/longtermism), [Wikipedia](https://en.wikipedia.org/wiki/Longtermism), and [1000 Word Philosophy](https://1000wordphilosophy.com/2021/09/17/longtermism/).
-- [Will MacAskill on whether you have to buy longtermism to prioritise reducing existential risk](https://80000hours.org/podcast/episodes/will-macaskill-ambition-longtermism-mental-health/)
-- If you’re interested in making charitable donations, see [Giving What We Can’s recommended charities and funds that are safeguarding the long-term future.](https://www.givingwhatwecan.org/cause-areas/long-term-future)
-- [Moral uncertainty: how to act when you’re uncertain about what’s good](https://80000hours.org/articles/moral-uncertainty/)
+- Podcast: [Will MacAskill on balancing frugality with ambition, whether you need longtermism, and mental health under pressure](https://80000hours.org/podcast/episodes/will-macaskill-ambition-longtermism-mental-health/)
 
 <div class="tw--mt-6 tw--p-3 tw--pt-2 tw--bg-gray-lighter tw--rounded-md ">
 
