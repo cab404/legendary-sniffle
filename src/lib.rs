@@ -1,12 +1,12 @@
 use clap::Parser;
+use colored::Colorize;
+use log::*;
 use serde_json::Map;
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs::{read_to_string, File};
 use std::num::IntErrorKind;
 use std::path::PathBuf;
 use strsim::jaro;
-use log::*;
-use colored::Colorize;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -28,39 +28,90 @@ pub struct Config {
 }
 
 pub fn run(config: Config) {
-    let _old_array = read_to_string(&config.old_json).unwrap();
-    let _new_string = read_to_string(&config.new_string).unwrap();
+    let new_string = read_to_string(&config.new_string).unwrap();
 
-    let _used_keys = match config.used_keys {
+    let used_keys = match config.used_keys {
         Some(x) => read_to_string(x).unwrap(),
         None => String::from(""),
     };
+    let used_keys: Vec<String> = serde_json::from_str(&used_keys).unwrap_or_default();
 
-    let _old_array: BTreeMap<String, String> = serde_json::from_str(&_old_array).unwrap();
-    let _old_array: Vec<(String, String)> = _old_array.into_iter().collect();
+    let old_array = read_to_string(&config.old_json).unwrap();
+    let old_array: BTreeMap<String, String> = serde_json::from_str(&old_array).unwrap();
+    let old_array: Vec<(String, String)> = old_array.into_iter().collect();
 
-    let _used_keys: Vec<String> =
-        serde_json::from_str(&_used_keys).unwrap_or_default();
+    println!("ran with {:?} {:?} {:?}", old_array, used_keys, &new_string);
+    let (final_json, unused_keys) = pipeline(old_array, used_keys, &new_string);
+    println!("got back {:?} {:?}", final_json, unused_keys);
 
-    let (final_json, _unused_keys) = pipeline(_old_array, _used_keys, &_new_string);
-
-    let mut _result = Map::new();
+    let mut result = Map::new();
     for (k, v) in final_json.into_iter() {
-        _result.insert(k, v.into());
+        result.insert(k, v.into());
     }
 
-
-    serde_json::to_writer_pretty(File::create(config.new_json_name).unwrap(), &_result).unwrap();
+    serde_json::to_writer_pretty(File::create(config.new_json_name).unwrap(), &result).unwrap();
     serde_json::to_writer(
         File::create(config.new_used_keys_name).unwrap(),
-        &_unused_keys,
+        &unused_keys,
     )
     .unwrap();
 }
 
+#[cfg(test)]
+use rand::{thread_rng, Rng};
+
+#[cfg(test)]
+const TEST_STRINGS: [&str; 9] = [
+    "Blala", "Bol bol", "Balaba", "Kalaba", "Ka", "Raba", "Dabara", "Taba", "Mutaba",
+];
+
+#[cfg(test)]
+pub fn gen_line(length: usize) -> String {
+    fn gen_word() -> String {
+        let mut rng = thread_rng();
+        let f = rng.gen_range(0..(TEST_STRINGS.len()));
+        TEST_STRINGS[f].to_string()
+    }
+    (0..length)
+        .map(|_| gen_word())
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+#[test]
+pub fn test_random_inserts() {
+    let mut state: Vec<(String, String)> = vec![("mow:0".to_string(), "initial".to_string())];
+    let mut keys: Vec<String> = vec![];
+    let mut text_parts: Vec<String> = vec!["initial".to_string()];
+
+    let mut rng = thread_rng();
+
+    for _ in 0..1000 {
+        println!("new insert!");
+
+        match rng.gen_range(0..=3) {
+            0 | 1 => {
+                text_parts.insert(
+                    rng.gen_range(0..=text_parts.len()),
+                    gen_line(12).to_string(),
+                );
+            }
+            2 => {
+                text_parts.remove(rng.gen_range(0..text_parts.len()));
+            }
+            _ => {
+                // Doing literally nothing is a viable option, but won't give you dignity points.
+            }
+        }
+
+        (state, keys) = pipeline(state, keys, text_parts.join("\n\n").as_str());
+        println!("{} {}", state.len(), keys.len());
+    }
+}
+
 pub fn pipeline(
     old_array: Vec<(String, String)>,
-    _used_keys: Vec<String>,
+    used_keys: Vec<String>,
     new_string: &str,
 ) -> (Vec<(String, String)>, Vec<String>) {
     let new_string_array = string_to_array(new_string);
@@ -87,7 +138,7 @@ pub fn pipeline(
         old_array
             .iter()
             .map(|(x, _)| get_key_number(x).unwrap())
-            .chain(_used_keys.iter().map(|x| get_key_number(x).unwrap())),
+            .chain(used_keys.iter().map(|x| get_key_number(x).unwrap())),
     );
 
     fill_all_strings(
@@ -108,7 +159,7 @@ pub fn pipeline(
     trace!("new unused keys are {:?}", &_new_unused_keys);
     let old_array_hashset: Vec<String> = _new_unused_keys
         .into_iter()
-        .chain(_used_keys.into_iter())
+        .chain(used_keys.into_iter())
         .collect::<Vec<String>>();
     (unsorted_partial_answer, old_array_hashset)
 }
@@ -126,16 +177,21 @@ pub fn fill_similar_strings(
     old_array_hashset: &mut BTreeSet<(String, String)>,
     new_string_hashset: &mut BTreeMap<String, usize>,
 ) -> Vec<(String, String)> {
-    let mut _log_count_inserted_strings = 0usize;
-    let _log_len = old_array_hashset.len();
+    let mut log_count_inserted_strings = 0usize;
+    let log_len = old_array_hashset.len();
     let mut answer: Vec<(String, String)> = Vec::with_capacity(new_array.len());
     answer.resize(new_array.len(), (String::from(""), String::from("")));
 
     for (i, text) in new_array.iter().enumerate() {
         if let Some(str) = old_array_hashset.iter().find(|&x| similar(&x.1, &text)) {
-            _log_count_inserted_strings += 1;
+            log_count_inserted_strings += 1;
             let str = str.clone();
-            trace!("old string {} and new string {} with key {} are similar", &text.yellow(), &str.1.yellow(), &str.0.green());
+            trace!(
+                "old string {} and new string {} with key {} are similar",
+                &text.yellow(),
+                &str.1.yellow(),
+                &str.0.green()
+            );
             if *new_string_hashset.get(text).unwrap() > 0 {
                 answer[i] = (old_array_hashset.take(&str).unwrap().0, text.to_string());
                 new_string_hashset.get_mut(text).map(|x| *x -= 1);
@@ -144,7 +200,10 @@ pub fn fill_similar_strings(
             info!("new string {} has no new similar strings", &text.red());
         }
     }
-    info!("{} old strings out of {} inserted", _log_count_inserted_strings, _log_len);
+    info!(
+        "{} old strings out of {} inserted",
+        log_count_inserted_strings, log_len
+    );
     answer
 }
 fn fill_all_strings(
@@ -156,7 +215,11 @@ fn fill_all_strings(
     for (i, text) in new_array.iter().enumerate() {
         if old_answer[i].1.is_empty() && old_answer[i].0.is_empty() {
             old_answer[i] = (get_unique_key(old_answer, i, old_keys), text.to_string());
-            info!("inserting new string {} with new unique key {}", old_answer[i].1.yellow(), old_answer[i].0.green());
+            info!(
+                "inserting new string {} with new unique key {}",
+                old_answer[i].1.yellow(),
+                old_answer[i].0.green()
+            );
             new_string_hashset.get_mut(text).map(|x| *x -= 1);
         }
     }
@@ -232,21 +295,33 @@ pub fn alphabetical_sort(array: &mut Vec<(String, String)>, old_keys: &BTreeSet<
             (Some((x, _)), Some((y, _))) => {
                 if !(x < &array[i].0 && &array[i].0 < y) {
                     let tmp = get_unique_key(array, i, old_keys);
-                    info!("changing old_key {} to new key {}", &array[i].0.yellow(), &tmp.green());
+                    info!(
+                        "changing old_key {} to new key {}",
+                        &array[i].0.yellow(),
+                        &tmp.green()
+                    );
                     array[i].0 = tmp;
                 }
             }
             (None, Some((y, _))) => {
                 if !(&array[i].0 < y) {
                     let tmp = get_unique_key(array, i, old_keys);
-                    info!("changing old_key {} to new key {}", &array[i].0.yellow(), &tmp.green());
+                    info!(
+                        "changing old_key {} to new key {}",
+                        &array[i].0.yellow(),
+                        &tmp.green()
+                    );
                     array[i].0 = tmp;
                 }
             }
             (Some((x, _)), None) => {
                 if !(x < &array[i].0) {
                     let tmp = get_unique_key(array, i, old_keys);
-                    info!("changing old_key {} to new key {}", &array[i].0.yellow(), &tmp.green());
+                    info!(
+                        "changing old_key {} to new key {}",
+                        &array[i].0.yellow(),
+                        &tmp.green()
+                    );
                     array[i].0 = tmp;
                 }
             }
