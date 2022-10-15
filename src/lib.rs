@@ -86,24 +86,47 @@ pub fn test_random_inserts() {
 
     let mut rng = thread_rng();
 
-    for _ in 0..1000 {
-        println!("new insert!");
-
-        match rng.gen_range(0..=3) {
+    for _ in 0..100000 {
+        match rng.gen_range(0..=4) {
             0 | 1 => {
-                text_parts.insert(
-                    rng.gen_range(0..=text_parts.len()),
-                    gen_line(12).to_string(),
-                );
+                let index = rng.gen_range(0..=text_parts.len());
+                let text = gen_line(12).to_string();
+                println!("insert: line {index}, text {text}");
+                text_parts.insert(index, text);
             }
-            2 => {
-                text_parts.remove(rng.gen_range(0..text_parts.len()));
+            2 | 3 => {
+                if text_parts.len() > 2 {
+                    let index = rng.gen_range(0..text_parts.len());
+                    text_parts.remove(index);
+                    println!("delete: line {index}");
+                } else {
+                    println!("noop: tried deleting, but there's nothing left");
+                }
+
             }
             _ => {
+                println!("noop");
                 // Doing literally nothing is a viable option, but won't give you dignity points.
             }
         }
 
+        (state, keys) = pipeline(state, keys, text_parts.join("\n\n").as_str());
+        println!("{} {}", state.len(), keys.len());
+        println!("{keys:?}");
+    }
+}
+
+#[test]
+pub fn test_trivial_inserts() {
+    let mut state: Vec<(String, String)> = vec![("mow:0".to_string(), "initial".to_string())];
+    let mut keys: Vec<String> = vec![];
+    let mut text_parts: Vec<String> = vec!["initial".to_string()];
+
+    for _ in 0..100000 {
+        let text = gen_line(12).to_string();
+        text_parts.insert(1, text);
+        (state, keys) = pipeline(state, keys, text_parts.join("\n\n").as_str());
+        text_parts.remove(1);
         (state, keys) = pipeline(state, keys, text_parts.join("\n\n").as_str());
         println!("{} {}", state.len(), keys.len());
     }
