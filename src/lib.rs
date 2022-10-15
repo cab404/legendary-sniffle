@@ -132,6 +132,19 @@ pub fn test_trivial_inserts() {
     }
 }
 
+#[test]
+pub fn test_zero_state_noop() {
+    let mut state: Vec<(String, String)> = vec![("mow:0".to_string(), "initial".to_string())];
+    let mut keys: Vec<String> = vec![];
+    let mut text_parts: Vec<String> = vec!["initial".to_string()];
+
+    (state, keys) = pipeline(state, keys, text_parts.join("\n\n").as_str());
+    text_parts.remove(0);
+    (state, keys) = pipeline(state, keys, text_parts.join("\n\n").as_str());
+    (state, keys) = pipeline(state, keys, text_parts.join("\n\n").as_str());
+    println!("{} {}", state.len(), keys.len());
+}
+
 pub fn pipeline(
     old_array: Vec<(String, String)>,
     used_keys: Vec<String>,
