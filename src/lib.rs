@@ -58,7 +58,7 @@ pub fn run(config: Config) {
 }
 
 #[cfg(test)]
-use rand::{thread_rng, Rng};
+use rand::{thread_rng, Rng, SeedableRng};
 
 #[cfg(test)]
 const TEST_STRINGS: [&str; 9] = [
@@ -86,33 +86,32 @@ pub fn test_random_inserts() {
 
     let mut rng = thread_rng();
 
-    for _ in 0..100000 {
+    for _ in 0..10000 {
         match rng.gen_range(0..=4) {
             0 | 1 => {
                 let index = rng.gen_range(0..=text_parts.len());
                 let text = gen_line(12).to_string();
-                println!("insert: line {index}, text {text}");
+                info!("insert: line {index}, text {text}");
                 text_parts.insert(index, text);
             }
             2 | 3 => {
                 if text_parts.len() > 2 {
                     let index = rng.gen_range(0..text_parts.len());
                     text_parts.remove(index);
-                    println!("delete: line {index}");
+                    info!("delete: line {index}");
                 } else {
-                    println!("noop: tried deleting, but there's nothing left");
+                    info!("noop: tried deleting, but there's nothing left");
                 }
-
             }
             _ => {
-                println!("noop");
+                info!("noop");
                 // Doing literally nothing is a viable option, but won't give you dignity points.
             }
         }
 
         (state, keys) = pipeline(state, keys, text_parts.join("\n\n").as_str());
-        println!("{} {}", state.len(), keys.len());
-        println!("{keys:?}");
+        // println!("{} {}", state.len(), keys.len());
+        // println!("{keys:?}");
     }
 }
 
@@ -122,14 +121,15 @@ pub fn test_trivial_inserts() {
     let mut keys: Vec<String> = vec![];
     let mut text_parts: Vec<String> = vec!["initial".to_string()];
 
-    for _ in 0..100000 {
+    for _ in 0..10000 {
         let text = gen_line(12).to_string();
         text_parts.insert(1, text);
         (state, keys) = pipeline(state, keys, text_parts.join("\n\n").as_str());
         text_parts.remove(1);
         (state, keys) = pipeline(state, keys, text_parts.join("\n\n").as_str());
-        println!("{} {}", state.len(), keys.len());
+        // println!("{} {}", state.len(), keys.len());
     }
+    // println!("{:?}", keys);
 }
 
 #[test]
@@ -142,7 +142,7 @@ pub fn test_zero_state_noop() {
     text_parts.remove(0);
     (state, keys) = pipeline(state, keys, text_parts.join("\n\n").as_str());
     (state, keys) = pipeline(state, keys, text_parts.join("\n\n").as_str());
-    println!("{} {}", state.len(), keys.len());
+    // println!("{} {}", state.len(), keys.len());
 }
 
 pub fn pipeline(
@@ -200,12 +200,30 @@ pub fn pipeline(
     (unsorted_partial_answer, old_array_hashset)
 }
 fn string_to_array(str: &str) -> Vec<String> {
-    str.split("\n\n").map(|x| x.to_string()).collect()
+    // We double-allocate it so we can generate a double-iterator
+    str.rsplit("\n\n")
+        .map(|x| x.to_string())
+        .collect::<Vec<_>>()
+        .into_iter()
+        .rev()
+        .collect()
 }
 
 fn similar(a: &str, b: &str) -> bool {
     jaro(a, b) > 0.8
     //levenshtein(a, b) < std::cmp::max(a.len(), b.len()) * 3 / 2 - std::cmp::min(a.len(), b.len())
+}
+
+#[test]
+fn test_something() {
+    let test_ex = r#"Something
+
+Something else
+"#;
+    assert_eq!(
+        string_to_array(test_ex),
+        vec!["Something", "Something else\n"]
+    )
 }
 
 pub fn fill_similar_strings(
